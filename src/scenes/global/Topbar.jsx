@@ -8,7 +8,7 @@ import { purple } from "@mui/material/colors";
 
 const Topbar = () => {
   return (
-    <Box display="flex" justifyContent="space-between" p={2} width="359%">
+    <Box display="flex" justifyContent="space-between" p={2} >
       {/* Search bar */}
       <Box
         display="flex"
