@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box, Toolbar, Typography, Button, TextField, MenuItem, Chip } from "@mui/material";
+import { Box, Toolbar, Typography, Button, TextField, MenuItem, Chip, Select } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import Papa from "papaparse";
 import { mockDataTeam } from "../../data/mockData";
@@ -11,8 +11,9 @@ import { blue, blueGrey } from "@mui/material/colors";
 
 const Team = () => {
   const [rows, setRows] = useState(mockDataTeam);
-  const [selectedStudents, setSelectedStudents] = useState([]); // Ensure this is an array
+  const [selectedStudents, setSelectedStudents] = useState([]);
   const [teamName, setTeamName] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null); // State for file upload
 
   // Define CustomToolbar
   const CustomToolbar = ({ onUpload }) => (
@@ -76,9 +77,8 @@ const Team = () => {
         complete: (results) => {
           const parsedData = results.data.map((item) => ({
             ...item,
-            id: Number(item.id), // Ensure ID is a number
+            id: Number(item.id),
           }));
-          console.log(parsedData);
           setRows(parsedData);
         },
         error: (error) => {
@@ -88,42 +88,43 @@ const Team = () => {
     }
   };
 
-  // Define handleCreateTeam function
+  // Handle form file upload
+  const handleFileChange = (event) => {
+    setSelectedFile(event.target.files[0]);
+    
+  };
+
+  const handleFormSubmit = (event) => {
+    event.preventDefault();
+    console.log(selectedFile);
+    // Implement file handling logic here
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('fileName', file.name);
+  };
+
+  // Handle team creation
   const handleCreateTeam = () => {
     console.log("Team Name:", teamName);
     console.log("Selected Students:", selectedStudents);
-
-    // Logic to save the team (e.g., API call, state management, etc.)
-
-    // Reset selected students and team name after creation
     setSelectedStudents([]);
     setTeamName("");
-  };
-
-  // Handle selecting/deselecting students
-  const handleSelectStudent = (id) => {
-    setSelectedStudents((prev) => {
-      if (prev.includes(id)) {
-        return prev.filter((studentId) => studentId !== id); // Deselect if already selected
-      } else {
-        return [...prev, id]; // Select if not already selected
-      }
-    });
   };
 
   return (
     <Box m="20px">
       <Header title="TEAM" subtitle="Managing the Team Members" />
+      
       <Box m="20px 0">
         <TextField
           select
           label="Select Students"
           value={selectedStudents}
-          onChange={(e) => setSelectedStudents(e.target.value)} // Keep this as it is
+          onChange={(e) => setSelectedStudents(e.target.value)}
           fullWidth
           variant="outlined"
           margin="normal"
-          multiple
+          SelectProps={{ multiple: true }}
         >
           {rows.map((row) => (
             <MenuItem key={row.id} value={row.id}>
@@ -132,7 +133,7 @@ const Team = () => {
           ))}
         </TextField>
         <Box sx={{ display: "flex", flexWrap: "wrap", mt: 1 }}>
-          {Array.isArray(selectedStudents) && selectedStudents.map((id) => { // Ensure selectedStudents is an array
+          {Array.isArray(selectedStudents) && selectedStudents.map((id) => {
             const student = rows.find((row) => row.id === id);
             return (
               <Chip
@@ -163,6 +164,15 @@ const Team = () => {
           Create Team
         </Button>
       </Box>
+
+      {/* File Upload Form */}
+      <Box m="20px 0">
+        <form onSubmit={handleFormSubmit}>
+          <input type="file" id="myFile" name="filename" onChange={handleFileChange} />
+          <Button variant="contained" type="submit">Submit File</Button>
+        </form>
+      </Box>
+
       <Box
         m="40px 0 0 0"
         height="75vh"
@@ -189,8 +199,8 @@ const Team = () => {
             Toolbar: () => <CustomToolbar onUpload={handleUpload} />,
           }}
           checkboxSelection
-          onRowSelected={(params) => handleSelectStudent(params.data.id)} // Update selected students when rows are selected
-          selectionModel={selectedStudents} // Ensure the DataGrid reflects selected students
+          onSelectionModelChange={(newSelection) => setSelectedStudents(newSelection)}
+          selectionModel={selectedStudents}
         />
       </Box>
     </Box>
